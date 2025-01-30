@@ -1,4 +1,4 @@
-name: Deploy Auth Service to AWS EC2
+name: Deploy Auth Service to AWS ASG
 
 on:
   push:
@@ -24,18 +24,27 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
 
-      - name: 🖥️ Conectar y desplegar en AWS EC2
+      - name: 🚀 Actualizar Auto Scaling Group en AWS
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ASG_NAME: ${{ secrets.AWS_ASG_NAME }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_PRIVATE_KEY }} ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_INSTANCE_IP }} << EOF
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
-            docker stop auth-service || true
-            docker rm auth-service || true
-            docker run -d --name auth-service -p 4000:4000 \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e DB_USER=${{ secrets.DB_USER }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
-          EOF
+          # AWS CLI ya tiene permisos a través del IAM Role de la instancia EC2
+
+          # Obtener el último Launch Template Version
+          LATEST_VERSION=$(aws ec2 describe-launch-template-versions --launch-template-name $AWS_ASG_NAME --query 'LaunchTemplateVersions[-1].VersionNumber' --output text)
+
+          # Crear una nueva versión del Launch Template con la nueva imagen
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-name $AWS_ASG_NAME \
+            --source-version $LATEST_VERSION \
+            --launch-template-data "{\"ImageId\":\"${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' --output text)
+
+          # Actualizar el Auto Scaling Group para usar la nueva versión del Launch Template
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name $AWS_ASG_NAME \
+            --launch-template "LaunchTemplateName=$AWS_ASG_NAME,Version=$NEW_VERSION"
+
+          # Reemplazar instancias antiguas
+          aws autoscaling start-instance-refresh --auto-scaling-group-name $AWS_ASG_NAME
