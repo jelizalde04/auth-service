@@ -1,0 +1,16 @@
+# Session Token Microservice
+
+The **Session Token Microservice** is responsible for handling session tokens for user authentication, including token creation, verification, and revocation.
+
+## 📌 Features
+- Generate secure **JWT tokens** for user sessions.
+- Verify the validity of tokens.
+- Revoke session tokens when users log out.
+- Built with **Node.js, Express, MongoDB, JWT, Docker**.
+- Uses **Swagger** for API documentation.
+
+---
+
+## 🛠 Technologies Used
+- **Node.js** - JavaScript runtime environment.
+- **Express.js** - Lightweight web framework for Node.js.
