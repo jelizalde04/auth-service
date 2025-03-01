@@ -1,0 +1,46 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Login Microservice API",
+        "version": "1.0.0",
+        "description": "API para autenticación de usuarios"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "summary": "Login de usuario",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": { "type": "string" },
+                                    "password": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": { "description": "Credenciales incorrectas" },
+                    "500": { "description": "Error en el servidor" }
+                }
+            }
+        }
+    }
+}
