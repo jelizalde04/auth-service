@@ -1,0 +1,4 @@
+# Login Microservice
+
+The **Login Microservice** is responsible for user authentication in the Auth-Service architecture. It verifies user credentials and generates JWT tokens for authentication.
+
