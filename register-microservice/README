@@ -1,0 +1,9 @@
+# 🛠️ Register Microservice
+
+## 📌 Description
+The `register-microservice` is responsible for handling user registration, including:
+- Storing user details.
+- Hashing passwords securely.
+- Validating user data.
+
+This microservice is part of the **Auth-Service**, following best practices such as SOLID, KISS, DRY, and YAGNI.
