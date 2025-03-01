@@ -1,0 +1,7 @@
+#  Reset Password Microservice
+
+##  Description
+The `reset-password-microservice` handles password recovery, including:
+- Generating password reset tokens.
+- Sending reset links via email.
+- Allowing users to reset their passwords securely.
