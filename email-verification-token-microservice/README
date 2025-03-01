@@ -1,0 +1,6 @@
+# ✅ Email Verification Microservice
+
+## 📌 Description
+The `email-verification-token-microservice` handles email verification, including:
+- Generating and sending verification tokens.
+- Verifying the user's email upon confirmation.
