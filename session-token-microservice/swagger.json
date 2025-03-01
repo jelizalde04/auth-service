@@ -1,0 +1,62 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Session Token API",
+      "description": "API para la gestión de tokens de sesión"
+    },
+    "host": "localhost:1005",
+    "schemes": ["http"],
+    "paths": {
+      "/token/create": {
+        "post": {
+          "summary": "Genera un token de sesión",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "body",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "201": { "description": "Token creado exitosamente" }
+          }
+        }
+      },
+      "/token/verify": {
+        "post": {
+          "summary": "Verifica un token",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "body",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": { "description": "Token válido" },
+            "401": { "description": "Token inválido" }
+          }
+        }
+      },
+      "/token/revoke": {
+        "delete": {
+          "summary": "Revoca un token",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "body",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": { "description": "Token revocado exitosamente" }
+          }
+        }
+      }
+    }
+  }
+  
