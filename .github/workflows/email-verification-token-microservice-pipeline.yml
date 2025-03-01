@@ -1,0 +1,42 @@
+name: Email Verification Microservice Deployment
+
+on:
+  push:
+    branches:
+      - test
+    paths:
+      - 'email-verification-token-microservice/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+
+    - name: Install Dependencies
+      run: |
+        cd email-verification-token-microservice
+        npm install
+
+    - name: Run Tests
+      run: |
+        cd email-verification-token-microservice
+        npm test
+
+    - name: Build Docker Image
+      run: |
+        cd email-verification-token-microservice
+        docker build -t email-verification-token-microservice .
+
+    - name: Push to Docker Hub
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        docker tag email-verification-token-microservice myrepo/email-verification-token-microservice:latest
+        docker push myrepo/email-verification-token-microservice:latest
