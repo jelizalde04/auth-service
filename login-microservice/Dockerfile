@@ -1,20 +1,20 @@
-# Usar una imagen base de Node.js
-FROM node:16
+# Use a lightweight Node.js image
+FROM node:18-alpine
 
-# Definir el directorio de trabajo en el contenedor
+# Set working directory inside the container
 WORKDIR /app
 
-# Copiar los archivos del proyecto
+# Copy only package files for efficient caching
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install
+# Install only production dependencies
+RUN npm install --only=production
 
-# Copiar el resto del código fuente
+# Copy the rest of the project
 COPY . .
 
-# Exponer el puerto de la API
+# Expose port 1001
 EXPOSE 1001
 
-# Comando para ejecutar la aplicación
+# Start the application
 CMD ["node", "index.js"]

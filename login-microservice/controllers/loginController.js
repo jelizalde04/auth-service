@@ -1,28 +1,30 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const jwtService = require("../services/jwtService");
+const encryptionService = require("../services/encryptionService");
+const axiosService = require("../services/axiosService");
+const User = require("../models/User");
 
-exports.loginUser = async (req, res) => {
+const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Verificar si el usuario existe
+        // Find user by email
         const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "Usuario no encontrado" });
-        }
+        if (!user) return res.status(404).json({ error: "User not found" });
 
-        // Comparar contraseña
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Contraseña incorrecta" });
-        }
+        // Verify password
+        const isMatch = await encryptionService.compare(password, user.password);
+        if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-        // Generar token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Generate JWT token
+        const token = jwtService.generateToken({ id: user.id, email: user.email });
 
-        res.status(200).json({ token });
+        // Notify another microservice using WebHook
+        axiosService.sendWebhook("http://email-service:1004/webhook", { userId: user.id });
+
+        res.json({ token });
     } catch (error) {
-        res.status(500).json({ message: "Error en el servidor" });
+        res.status(500).json({ error: "Server error" });
     }
 };
+
+module.exports = { login };

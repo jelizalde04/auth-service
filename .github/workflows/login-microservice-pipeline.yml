@@ -1,42 +1,31 @@
-name: Login Microservice Deployment
+name: Login Microservice CI/CD
 
 on:
   push:
     branches:
       - test
-    paths:
-      - 'login-microservice/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v2
 
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '16'
+        node-version: 18
 
-    - name: Install Dependencies
-      run: |
-        cd login-microservice
-        npm install
+    - name: Install dependencies
+      run: npm install
 
-    - name: Run Tests
-      run: |
-        cd login-microservice
-        npm test
+    - name: Run tests
+      run: npm test
 
-    - name: Build Docker Image
-      run: |
-        cd login-microservice
-        docker build -t login-microservice .
+    - name: Build Docker image
+      run: docker build -t login-microservice .
 
-    - name: Push to Docker Hub
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-        docker tag login-microservice myrepo/login-microservice:latest
-        docker push myrepo/login-microservice:latest
+    - name: Push Docker image to Docker Hub
+      run: docker tag login-microservice your-dockerhub-user/login-microservice && docker push your-dockerhub-user/login-microservice
