@@ -1,56 +1,35 @@
-const User = require('../models/User');
-const crypto = require('crypto');
-const sendEmail = require('../services/emailService');
+const jwtService = require("../services/jwtService");
+const emailService = require("../services/emailService");
+const User = require("../models/User");
 
-exports.requestEmailVerification = async (req, res) => {
+const sendVerificationEmail = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        // Generate verification token
+        const token = jwtService.generateToken({ email });
 
-        if (user.isVerified) {
-            return res.status(400).json({ message: "User already verified" });
-        }
+        // Send verification email
+        await emailService.sendEmail(email, "Email Verification", `Your token: ${token}`);
 
-        // Generar token de verificación
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        user.verificationToken = verificationToken;
-        user.verificationTokenExpiry = Date.now() + 3600000; // 1 hora
-
-        await user.save();
-
-        // Enviar email con el enlace de verificación
-        const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
-        sendEmail(user.email, "Email Verification", `Click the link to verify your email: ${verificationLink}`);
-
-        res.status(200).json({ message: "Verification link sent to email" });
+        res.status(200).json({ message: "Verification email sent" });
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ error: "Server error" });
     }
 };
 
-exports.verifyEmail = async (req, res) => {
+const verifyToken = async (req, res) => {
     try {
         const { token } = req.body;
-        const user = await User.findOne({
-            verificationToken: token,
-            verificationTokenExpiry: { $gt: Date.now() }
-        });
 
-        if (!user) {
-            return res.status(400).json({ message: "Invalid or expired token" });
-        }
+        // Verify JWT token
+        const decoded = jwtService.verifyToken(token);
+        if (!decoded) return res.status(400).json({ error: "Invalid token" });
 
-        user.isVerified = true;
-        user.verificationToken = null;
-        user.verificationTokenExpiry = null;
-
-        await user.save();
         res.status(200).json({ message: "Email verified successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ error: "Server error" });
     }
 };
+
+module.exports = { sendVerificationEmail, verifyToken };
