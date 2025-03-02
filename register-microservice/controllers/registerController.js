@@ -1,31 +1,33 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
+const jwtService = require("../services/jwtService");
+const encryptionService = require("../services/encryptionService");
+const axiosService = require("../services/axiosService");
+const User = require("../models/User");
 
-exports.registerUser = async (req, res) => {
+const register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { email, password } = req.body;
 
-        // Verificar si el usuario ya existe
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: "Email already in use" });
-        }
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ error: "User already exists" });
 
-        // Hashear la contraseña
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Encrypt password before saving
+        const hashedPassword = await encryptionService.hash(password);
 
-        // Crear usuario
-        user = new User({
-            name,
-            email,
-            password: hashedPassword
-        });
+        // Create new user
+        const newUser = new User({ email, password: hashedPassword });
+        await newUser.save();
 
-        await user.save();
+        // Generate JWT token
+        const token = jwtService.generateToken({ id: newUser.id, email: newUser.email });
 
-        res.status(201).json({ message: "User registered successfully" });
+        // Notify other microservices via WebHook
+        axiosService.sendWebhook("http://email-service:1004/webhook", { userId: newUser.id });
+
+        res.status(201).json({ token });
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ error: "Server error" });
     }
 };
+
+module.exports = { register };
