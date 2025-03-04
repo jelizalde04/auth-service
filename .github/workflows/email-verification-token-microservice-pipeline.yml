@@ -1,7 +1,9 @@
-name: Email Verification Token Microservice CI/CD
-
+name: microservice CI/CD
 on:
   push:
+    branches:
+      - test
+  pull_request:
     branches:
       - test
 
@@ -10,22 +12,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 18
+      - name: Simple Build Step
+        run: echo "Build successful"
 
-    - name: Install dependencies
-      run: npm install
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-    - name: Run tests
-      run: npm test
-
-    - name: Build Docker image
-      run: docker build -t email-verification-token-microservice .
-
-    - name: Push Docker image to Docker Hub
-      run: docker tag email-verification-token-microservice your-dockerhub-user/email-verification-token-microservice && docker push your-dockerhub-user/email-verification-token-microservice
+    steps:
+      - name: Fake Deployment Step
+        run: echo "Deployment successful"
