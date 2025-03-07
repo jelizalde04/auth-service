@@ -1,10 +1,52 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+const User = sequelize.define('User', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+    },
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+    },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+            isEmail: true,
+        },
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    avatar: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+}, {
+    timestamps: true
 });
 
-module.exports = mongoose.model('User', UserSchema);
+// Definir la función de asociación
+User.associate = (models) => {
+    User.belongsToMany(models.User, {
+        as: 'Followers',
+        through: 'UserFollowers',
+        foreignKey: 'followingId',
+        otherKey: 'followerId'
+    });
+
+    User.belongsToMany(models.User, {
+        as: 'Following',
+        through: 'UserFollowers',
+        foreignKey: 'followerId',
+        otherKey: 'followingId'
+    });
+};
+
+module.exports = User;
